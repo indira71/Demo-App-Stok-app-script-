@@ -3209,17 +3209,31 @@ ${L("Resep per 1 porsi (ukuran: Semua / 18oz / 22oz)")}<div id="f-rs">${
         api(
           "getDailySalesReport",
           (r) => {
-            closedBiaya = r.closed;
-            lastExp = r.expenses;
-            lk("b-lock", r.closed);
-            $("b-sv").disabled = r.closed || !cb();
-            $("btb").innerHTML =
-              r.expenses
+            try {
+              closedBiaya = r.closed;
+              lastExp = r.expenses || [];
+              lk("b-lock", r.closed);
+              $("b-sv").disabled = r.closed || !cb();
+
+              const rows = lastExp
                 .map(
                   (x) =>
-                    `<td class="r" style="white-space:nowrap"><button class="ab" ${r.closed ? "disabled" : ""} onclick="editX('${x[0]}')">✏️</button> <button class="ab d" ${r.closed ? "disabled" : ""} onclick="delX('${x[0]}')">🗑</button></td></tr>`,
+                    `<tr>` +
+                    `<td>${esc(x[2] || x[4])}${cbt(x[7])}<small class="mu" style="display:block">${esc(x[3])}${x[2] && x[4] ? " · " + esc(x[4]) : ""}</small></td>` +
+                    `<td><span class="bd ${x[6] === "Qris" ? "q" : ""}">${esc(x[6])}</span></td>` +
+                    `<td class="r"><b>${rp(x[5])}</b></td>` +
+                    `<td class="r" style="white-space:nowrap">` +
+                    `<button class="ab" ${r.closed ? "disabled" : ""} onclick="editX('${x[0]}')">✏️</button> ` +
+                    `<button class="ab d" ${r.closed ? "disabled" : ""} onclick="delX('${x[0]}')">🗑</button>` +
+                    `</td></tr>`,
                 )
-                .join("") || empty(4);
+                .join("");
+
+              $("btb").innerHTML = rows || empty(4);
+            } catch (err) {
+              console.error(err);
+              toast("Error tampil pengeluaran: " + err.message, 1);
+            }
           },
           v("b-tgl"),
           cb(),
